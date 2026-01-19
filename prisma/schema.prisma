@@ -1,0 +1,50 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Reader {
+  id        String   @id @default(cuid())
+  code      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  readings  Reading[]
+  settings  ReaderSettings?
+}
+
+model Reading {
+  id              String   @id @default(cuid())
+  readerId        String
+  reader          Reader   @relation(fields: [readerId], references: [id], onDelete: Cascade)
+
+  title           String
+  content         String
+  wordCount       Int
+  currentPosition Int      @default(0)
+  currentWpm      Int      @default(300)
+  isCompleted     Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  lastReadAt      DateTime @default(now())
+
+  @@index([readerId])
+}
+
+model ReaderSettings {
+  id            String  @id @default(cuid())
+  readerId      String  @unique
+  reader        Reader  @relation(fields: [readerId], references: [id], onDelete: Cascade)
+
+  defaultWpm    Int     @default(300)
+  fontSize      String  @default("large")
+  theme         String  @default("dark")
+  autoSaveEvery Int     @default(5)
+}
